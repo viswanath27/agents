@@ -86,3 +86,9 @@ coverage.xml
 
 # Dependencies
 node_modules/
+
+# RAG Configuration (contains sensitive API keys)
+rag/config/rag_config.json
+
+# RAG Storage (local data files)
+rag/rag_storage/
