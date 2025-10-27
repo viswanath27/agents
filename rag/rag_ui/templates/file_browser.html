@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RAG Document Processing System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+            color: #1f2937;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 32px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header .icon {
+            background: rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .header .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+            margin-top: 4px;
+        }
+
+        /* Navigation Tabs */
+        .nav-container {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-tabs {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            padding: 0 32px;
+        }
+        
+        .nav-tab {
+            background: none;
+            border: none;
+            padding: 16px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-tab:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+        
+        .nav-tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .nav-tab .step-number {
+            background: #e5e7eb;
+            color: #6b7280;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab.active .step-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .nav-tab.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .page-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Configuration Page */
+        .config-page {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 24px 32px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .page-description {
+            color: #6b7280;
+            font-size: 16px;
+        }
+        
+        .config-content {
+            padding: 32px;
+        }
+        
+        .config-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 32px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: 10px;
+        }
+        
+        .config-tab {
+            background: transparent;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .config-tab.active {
+            background: white;
+            color: #1f2937;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #fafbfc;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-group .help-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .config-section {
+            display: none;
+        }
+        
+        .config-section.active {
+            display: block;
+        }
+
+        /* Processing Page */
+        .processing-page {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            height: calc(100vh - 250px);
+        }
+        
+        .upload-panel, .status-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #f8fafc;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            padding: 40px 24px;
+            text-align: center;
+            border: 3px dashed #d1d5db;
+            margin: 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #fafbfc;
+        }
+        
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .upload-subtext {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Chat & Review Page */
+        .chat-page {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            height: calc(100vh - 250px);
+        }
+        
+        .pdf-viewer, .chat-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-content {
+            flex: 1;
+            padding: 24px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .chat-input-area {
+            padding: 20px 24px;
+            border-top: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #6b7280; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+            padding: 16px 24px;
+            font-size: 16px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            padding: 24px 32px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            bottom: 0;
+        }
+
+        /* Status & Progress */
+        .status-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .progress {
+            background: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 12px;
+            margin: 16px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            transition: width 0.3s ease;
+        }
+
+        .logs {
+            background: #1a202c;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-y: auto;
+            max-height: 400px;
+            white-space: pre-wrap;
+            margin-top: 16px;
+            border: 1px solid #2d3748;
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+        
+        .status-success { 
+            background: #ecfdf5; 
+            color: #065f46; 
+            border-color: #10b981; 
+        }
+        .status-error { 
+            background: #fef2f2; 
+            color: #991b1b; 
+            border-color: #ef4444; 
+        }
+        .status-warning { 
+            background: #fffbeb; 
+            color: #92400e; 
+            border-color: #f59e0b; 
+        }
+        .status-processing { 
+            background: #eff6ff; 
+            color: #1e40af; 
+            border-color: #3b82f6; 
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .processing-page, .chat-page {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs, .main-container, .action-bar {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>
+                    <div class="icon">�</div>
+                    RAG Document Intelligence
+                </h1>
+                <div class="subtitle">Enterprise Document Processing & Knowledge Extraction</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showPage('configuration')">
+                <span class="step-number">1</span>
+                Configuration
+            </button>
+            <button class="nav-tab" onclick="showPage('processing')">
+                <span class="step-number">2</span>
+                Document Processing
+            </button>
+            <button class="nav-tab" onclick="showPage('chat')">
+                <span class="step-number">3</span>
+                Review & Chat
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Configuration Page -->
+        <div id="configuration-page" class="page-section active">
+            <div class="config-page">
+                <div class="page-header">
+                    <h2 class="page-title">System Configuration</h2>
+                    <p class="page-description">Configure your RAG system settings, models, and parameters</p>
+                </div>
+                
+                <div class="config-content">
+                    <div class="config-tabs">
+                        <button class="config-tab active" onclick="showConfigSection('server')">Server</button>
+                        <button class="config-tab" onclick="showConfigSection('llm')">LLM</button>
+                        <button class="config-tab" onclick="showConfigSection('embedding')">Embedding</button>
+                        <button class="config-tab" onclick="showConfigSection('processing')">Processing</button>
+                        <button class="config-tab" onclick="showConfigSection('rag-query')">RAG Query</button>
+                        <button class="config-tab" onclick="showConfigSection('database')">Database</button>
+                    </div>
+
+            <!-- Server Configuration -->
+            <div id="server-config" class="config-section active">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Host</label>
+                        <input type="text" id="HOST" value="0.0.0.0" placeholder="0.0.0.0">
+                        <div class="help-text">Server host address</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Port</label>
+                        <input type="number" id="PORT" value="9621" placeholder="9621">
+                        <div class="help-text">Server port number</div>
+                    </div>
+                    <div class="form-group">
+                        <label>WebUI Title</label>
+                        <input type="text" id="WEBUI_TITLE" value="My Graph KB" placeholder="My Graph KB">
+                        <div class="help-text">Title displayed in the web interface</div>
+                    </div>
+                    <div class="form-group">
+                        <label>WebUI Description</label>
+                        <textarea id="WEBUI_DESCRIPTION" rows="2" placeholder="Simple and Fast Graph Based RAG System">Simple and Fast Graph Based RAG System</textarea>
+                        <div class="help-text">Description shown in the web interface</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Log Level</label>
+                        <select id="LOG_LEVEL">
+                            <option value="DEBUG">DEBUG</option>
+                            <option value="INFO" selected>INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                        <div class="help-text">Logging level</div>
+                    </div>
+                    <div class="form-group">
+                        <label>TIKTOKEN Cache Directory</label>
+                        <input type="text" id="TIKTOKEN_CACHE_DIR" placeholder="./tiktoken_cache">
+                        <div class="help-text">Local directory containing cached tiktoken models (for offline deployment)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LLM Configuration -->
+            <div id="llm-config" class="config-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>LLM Binding Type</label>
+                        <select id="LLM_BINDING">
+                            <option value="openai" selected>OpenAI</option>
+                            <option value="ollama">Ollama</option>
+                            <option value="lollms">LollMs</option>
+                            <option value="azure_openai">Azure OpenAI</option>
+                            <option value="lmstudio">LMStudio</option>
+                        </select>
+                        <div class="help-text">LLM service provider</div>
+                    </div>
+                    <div class="form-group">
+                        <label>LLM Model</label>
+                        <input type="text" id="LLM_MODEL" value="gpt-4o" placeholder="gpt-4o">
+                        <div class="help-text">Model name to use</div>
+                    </div>
+                    <div class="form-group">
+                        <label>LLM Binding Host</label>
+                        <input type="text" id="LLM_BINDING_HOST" value="https://api.openai.com/v1" placeholder="https://api.openai.com/v1">
+                        <div class="help-text">API endpoint URL</div>
+                    </div>
+                    <div class="form-group">
+                        <label>LLM API Key</label>
+                        <input type="password" id="LLM_BINDING_API_KEY" placeholder="your_api_key">
+                        <div class="help-text">API key for LLM service</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Temperature</label>
+                        <input type="number" id="TEMPERATURE" value="0" min="0" max="2" step="0.1" placeholder="0">
+                        <div class="help-text">Sampling temperature (0-2)</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Tokens</label>
+                        <input type="number" id="MAX_TOKENS" value="32768" placeholder="32768">
+                        <div class="help-text">Max tokens for LLM responses</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Async Requests</label>
+                        <input type="number" id="MAX_ASYNC" value="4" placeholder="4">
+                        <div class="help-text">Max concurrent LLM requests</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Timeout (seconds)</label>
+                        <input type="number" id="TIMEOUT" value="240" placeholder="240">
+                        <div class="help-text">Request timeout in seconds</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embedding Configuration -->
+            <div id="embedding-config" class="config-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Embedding Binding Type</label>
+                        <select id="EMBEDDING_BINDING">
+                            <option value="openai">OpenAI</option>
+                            <option value="ollama" selected>Ollama</option>
+                            <option value="lollms">LollMs</option>
+                            <option value="azure_openai">Azure OpenAI</option>
+                            <option value="lmstudio">LMStudio</option>
+                        </select>
+                        <div class="help-text">Embedding service provider</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Embedding Model</label>
+                        <input type="text" id="EMBEDDING_MODEL" value="bge-m3:latest" placeholder="bge-m3:latest">
+                        <div class="help-text">Embedding model name</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Embedding Dimension</label>
+                        <input type="number" id="EMBEDDING_DIM" value="1024" placeholder="1024">
+                        <div class="help-text">Vector dimension size</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Embedding Binding Host</label>
+                        <input type="text" id="EMBEDDING_BINDING_HOST" value="http://localhost:11434" placeholder="http://localhost:11434">
+                        <div class="help-text">Embedding service API endpoint</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Embedding API Key</label>
+                        <input type="password" id="EMBEDDING_BINDING_API_KEY" placeholder="your_api_key">
+                        <div class="help-text">API key for embedding service</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Embedding Batch Size</label>
+                        <input type="number" id="EMBEDDING_BATCH_NUM" value="32" placeholder="32">
+                        <div class="help-text">Number of chunks per embedding request</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Embedding Async</label>
+                        <input type="number" id="EMBEDDING_FUNC_MAX_ASYNC" value="16" placeholder="16">
+                        <div class="help-text">Max concurrent embedding requests</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Configuration -->
+            <div id="processing-config" class="config-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Parse Method</label>
+                        <select id="PARSE_METHOD">
+                            <option value="auto" selected>Auto</option>
+                            <option value="mineru">MinerU</option>
+                            <option value="unstructured">Unstructured</option>
+                        </select>
+                        <div class="help-text">Document parsing method</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Parser</label>
+                        <select id="PARSER">
+                            <option value="mineru" selected>MinerU</option>
+                            <option value="unstructured">Unstructured</option>
+                        </select>
+                        <div class="help-text">Document parser to use</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Chunk Size</label>
+                        <input type="number" id="CHUNK_SIZE" value="1200" placeholder="1200">
+                        <div class="help-text">Document chunk size (500-1500 recommended)</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Chunk Overlap Size</label>
+                        <input type="number" id="CHUNK_OVERLAP_SIZE" value="100" placeholder="100">
+                        <div class="help-text">Overlap between chunks</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Parallel Insert</label>
+                        <input type="number" id="MAX_PARALLEL_INSERT" value="2" placeholder="2">
+                        <div class="help-text">Parallel document processing (less than MAX_ASYNC/2)</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Concurrent Files</label>
+                        <input type="number" id="MAX_CONCURRENT_FILES" value="1" placeholder="1">
+                        <div class="help-text">Max files processed simultaneously</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Context Window</label>
+                        <input type="number" id="CONTEXT_WINDOW" value="1" placeholder="1">
+                        <div class="help-text">Context window for extraction</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Context Mode</label>
+                        <select id="CONTEXT_MODE">
+                            <option value="page" selected>Page</option>
+                            <option value="document">Document</option>
+                        </select>
+                        <div class="help-text">Context extraction mode</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Context Tokens</label>
+                        <input type="number" id="MAX_CONTEXT_TOKENS" value="2000" placeholder="2000">
+                        <div class="help-text">Maximum context tokens</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enable Image Processing</label>
+                        <select id="ENABLE_IMAGE_PROCESSING">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                        <div class="help-text">Process images in documents</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enable Table Processing</label>
+                        <select id="ENABLE_TABLE_PROCESSING">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                        <div class="help-text">Process tables in documents</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enable Equation Processing</label>
+                        <select id="ENABLE_EQUATION_PROCESSING">
+                            <option value="true" selected>True</option>
+                            <option value="false">False</option>
+                        </select>
+                        <div class="help-text">Process equations in documents</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG Query Configuration -->
+            <div id="rag-query-config" class="config-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>History Turns</label>
+                        <input type="number" id="HISTORY_TURNS" value="3" placeholder="3">
+                        <div class="help-text">Number of conversation history turns</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Cosine Threshold</label>
+                        <input type="number" id="COSINE_THRESHOLD" value="0.2" step="0.1" placeholder="0.2">
+                        <div class="help-text">Cosine similarity threshold</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Top K</label>
+                        <input type="number" id="TOP_K" value="60" placeholder="60">
+                        <div class="help-text">Number of top results to retrieve</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Graph Nodes</label>
+                        <input type="number" id="MAX_GRAPH_NODES" value="1000" placeholder="1000">
+                        <div class="help-text">Max nodes returned from graph retrieval</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Token Text Chunk</label>
+                        <input type="number" id="MAX_TOKEN_TEXT_CHUNK" value="4000" placeholder="4000">
+                        <div class="help-text">Max tokens per text chunk</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Token Relation Desc</label>
+                        <input type="number" id="MAX_TOKEN_RELATION_DESC" value="4000" placeholder="4000">
+                        <div class="help-text">Max tokens for relation descriptions</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Token Entity Desc</label>
+                        <input type="number" id="MAX_TOKEN_ENTITY_DESC" value="4000" placeholder="4000">
+                        <div class="help-text">Max tokens for entity descriptions</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Summary Language</label>
+                        <select id="SUMMARY_LANGUAGE">
+                            <option value="English" selected>English</option>
+                            <option value="Chinese">Chinese</option>
+                            <option value="French">French</option>
+                            <option value="German">German</option>
+                            <option value="Spanish">Spanish</option>
+                        </select>
+                        <div class="help-text">Language for entity/relation summarization</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Configuration -->
+            <div id="database-config" class="config-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Storage Type</label>
+                        <select id="STORAGE_TYPE">
+                            <option value="local" selected>Local Files</option>
+                            <option value="postgresql">PostgreSQL</option>
+                            <option value="neo4j">Neo4j</option>
+                            <option value="mongodb">MongoDB</option>
+                            <option value="milvus">Milvus</option>
+                            <option value="qdrant">Qdrant</option>
+                        </select>
+                        <div class="help-text">Data storage backend</div>
+                    </div>
+                    <!-- PostgreSQL -->
+                    <div class="form-group" id="postgres-group" style="display: none;">
+                        <label>PostgreSQL Host</label>
+                        <input type="text" id="POSTGRES_HOST" value="localhost" placeholder="localhost">
+                        <div class="help-text">PostgreSQL server host</div>
+                    </div>
+                    <div class="form-group" id="postgres-port-group" style="display: none;">
+                        <label>PostgreSQL Port</label>
+                        <input type="number" id="POSTGRES_PORT" value="5432" placeholder="5432">
+                        <div class="help-text">PostgreSQL server port</div>
+                    </div>
+                    <div class="form-group" id="postgres-user-group" style="display: none;">
+                        <label>PostgreSQL User</label>
+                        <input type="text" id="POSTGRES_USER" placeholder="your_username">
+                        <div class="help-text">PostgreSQL username</div>
+                    </div>
+                    <div class="form-group" id="postgres-password-group" style="display: none;">
+                        <label>PostgreSQL Password</label>
+                        <input type="password" id="POSTGRES_PASSWORD" placeholder="your_password">
+                        <div class="help-text">PostgreSQL password</div>
+                    </div>
+                    <div class="form-group" id="postgres-database-group" style="display: none;">
+                        <label>PostgreSQL Database</label>
+                        <input type="text" id="POSTGRES_DATABASE" placeholder="your_database">
+                        <div class="help-text">PostgreSQL database name</div>
+                    </div>
+                    <!-- Neo4j -->
+                    <div class="form-group" id="neo4j-uri-group" style="display: none;">
+                        <label>Neo4j URI</label>
+                        <input type="text" id="NEO4J_URI" placeholder="neo4j+s://xxxxxxxx.databases.neo4j.io">
+                        <div class="help-text">Neo4j connection URI</div>
+                    </div>
+                    <div class="form-group" id="neo4j-username-group" style="display: none;">
+                        <label>Neo4j Username</label>
+                        <input type="text" id="NEO4J_USERNAME" value="neo4j" placeholder="neo4j">
+                        <div class="help-text">Neo4j username</div>
+                    </div>
+                    <div class="form-group" id="neo4j-password-group" style="display: none;">
+                        <label>Neo4j Password</label>
+                        <input type="password" id="NEO4J_PASSWORD" placeholder="your_password">
+                        <div class="help-text">Neo4j password</div>
+                    </div>
+                    <!-- MongoDB -->
+                    <div class="form-group" id="mongo-uri-group" style="display: none;">
+                        <label>MongoDB URI</label>
+                        <input type="text" id="MONGO_URI" value="mongodb://root:root@localhost:27017/" placeholder="mongodb://root:root@localhost:27017/">
+                        <div class="help-text">MongoDB connection URI</div>
+                    </div>
+                    <div class="form-group" id="mongo-database-group" style="display: none;">
+                        <label>MongoDB Database</label>
+                        <input type="text" id="MONGO_DATABASE" value="LightRAG" placeholder="LightRAG">
+                        <div class="help-text">MongoDB database name</div>
+                    </div>
+                    <!-- Milvus -->
+                    <div class="form-group" id="milvus-uri-group" style="display: none;">
+                        <label>Milvus URI</label>
+                        <input type="text" id="MILVUS_URI" value="http://localhost:19530" placeholder="http://localhost:19530">
+                        <div class="help-text">Milvus connection URI</div>
+                    </div>
+                    <div class="form-group" id="milvus-db-group" style="display: none;">
+                        <label>Milvus Database</label>
+                        <input type="text" id="MILVUS_DB_NAME" value="lightrag" placeholder="lightrag">
+                        <div class="help-text">Milvus database name</div>
+                    </div>
+                    <!-- Qdrant -->
+                    <div class="form-group" id="qdrant-url-group" style="display: none;">
+                        <label>Qdrant URL</label>
+                        <input type="text" id="QDRANT_URL" value="http://localhost:16333" placeholder="http://localhost:16333">
+                        <div class="help-text">Qdrant connection URL</div>
+                    </div>
+                    <div class="form-group" id="qdrant-api-key-group" style="display: none;">
+                        <label>Qdrant API Key</label>
+                        <input type="password" id="QDRANT_API_KEY" placeholder="your-api-key">
+                        <div class="help-text">Qdrant API key (optional)</div>
+                    </div>
+                    <!-- Redis -->
+                    <div class="form-group" id="redis-uri-group" style="display: none;">
+                        <label>Redis URI</label>
+                        <input type="text" id="REDIS_URI" value="redis://localhost:6379" placeholder="redis://localhost:6379">
+                        <div class="help-text">Redis connection URI</div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Page -->
+        <div id="processing-page" class="page-section">
+            <div class="processing-page">
+                <!-- Upload Panel -->
+                <div class="upload-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <span>📁</span>
+                            Document Upload
+                        </h3>
+                    </div>
+                    
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">⬆️</div>
+                        <div class="upload-text">Choose a file or drag it here</div>
+                        <div class="upload-subtext">PDF, DOC, DOCX, TXT, MD, or Images</div>
+                        <input type="file" id="fileInput" style="display: none;" 
+                               accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png" 
+                               onchange="handleFileSelect(event)">
+                    </div>
+                    
+                    <div style="padding: 0 24px 24px;">
+                        <div id="file-info" style="display: none; margin-bottom: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                            <div style="font-size: 16px; color: #1e40af; font-weight: 600; margin-bottom: 8px;">
+                                📄 <span id="selected-file-name"></span>
+                            </div>
+                            <div style="font-size: 14px; color: #6b7280;">
+                                <span id="selected-file-size"></span>
+                            </div>
+                        </div>
+                        
+                        <form id="processForm" method="post" action="/process_file/">
+                            {% csrf_token %}
+                            <input type="hidden" id="selectedFileName" name="file_name">
+                            <button type="submit" id="processBtn" class="btn btn-full" disabled>
+                                <span>🚀</span>
+                                Process Document
+                            </button>
+                        </form>
+                        
+                        <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <button type="button" id="clearCacheBtn" class="btn btn-warning">
+                                <span>🗑️</span>
+                                Clear Cache
+                            </button>
+                            <button type="button" onclick="refreshFileList()" class="btn btn-secondary">
+                                <span>🔄</span>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Panel -->
+                <div class="status-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <span>⚡</span>
+                            Processing Status
+                        </h3>
+                    </div>
+                    
+                    <div class="status-content">
+                        <div id="status"></div>
+                        <div id="progress-container" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div id="logs-container" style="display: none;">
+                            <div id="logs" class="logs">Logs will appear here when processing starts...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat & Review Page -->
+        <div id="chat-page" class="page-section">
+            <div class="chat-page">
+                <!-- PDF Viewer Panel -->
+                <div class="pdf-viewer">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <span>📖</span>
+                            Document Viewer
+                        </h3>
+                    </div>
+                    
+                    <div class="pdf-content">
+                        <div style="text-align: center;">
+                            <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.5;">�</div>
+                            <div style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 8px;">No Document Loaded</div>
+                            <div style="font-size: 14px; color: #6b7280;">Process a document to view it here</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Panel -->
+                <div class="chat-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <span>💬</span>
+                            Document Chat
+                        </h3>
+                    </div>
+                    
+                    <div class="chat-messages">
+                        <div style="padding: 20px; background: #f0f9ff; border-radius: 8px; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">🤖</div>
+                                <div style="font-weight: 600; color: #1e40af;">AI Assistant</div>
+                            </div>
+                            <div style="color: #374151; line-height: 1.6;">
+                                Hello! I'm your AI document assistant. Once you've processed a document, I can help you:
+                                <br><br>
+                                • Answer questions about the content
+                                <br>• Summarize key points
+                                <br>• Extract specific information
+                                <br>• Analyze relationships and insights
+                                <br><br>
+                                Upload and process a document in the previous step to get started!
+                            </div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 12px;">
+                                {{ now|date:"H:i" }}
+                            </div>
+                        </div>
+                        <div id="chat-content"></div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <div class="chat-input">
+                            <input type="text" placeholder="Ask a question about your document..." disabled id="chat-message-input">
+                            <button class="btn" disabled id="chat-send-btn">
+                                <span>📤</span>
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div>
+            <button class="btn btn-secondary" onclick="previousPage()" id="prev-btn" style="display: none;">
+                <span>←</span>
+                Previous
+            </button>
+        </div>
+        <div>
+            <button class="btn btn-secondary" onclick="resetConfig()" id="reset-btn">
+                <span>🔄</span>
+                Reset
+            </button>
+            <button class="btn btn-success" onclick="saveConfig()" id="save-btn">
+                <span>💾</span>
+                Save Configuration
+            </button>
+            <button class="btn" onclick="nextPage()" id="next-btn">
+                Next
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let currentTaskId = null;
+        let pollInterval = null;
+        let currentPage = 'configuration';
+        let processedDocument = null;
+        
+        // Page Navigation
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageName + '-page').classList.add('active');
+            
+            // Add active to clicked tab
+            event.target.classList.add('active');
+            
+            currentPage = pageName;
+            updateActionBar();
+        }
+        
+        function nextPage() {
+            if (currentPage === 'configuration') {
+                showPageByName('processing');
+            } else if (currentPage === 'processing') {
+                if (processedDocument) {
+                    showPageByName('chat');
+                } else {
+                    showStatusMessage('Please process a document first before proceeding to chat', 'warning');
+                }
+            }
+        }
+        
+        function previousPage() {
+            if (currentPage === 'processing') {
+                showPageByName('configuration');
+            } else if (currentPage === 'chat') {
+                showPageByName('processing');
+            }
+        }
+        
+        function showPageByName(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageName + '-page').classList.add('active');
+            
+            // Add active to corresponding nav tab
+            const navTabs = document.querySelectorAll('.nav-tab');
+            if (pageName === 'configuration') navTabs[0].classList.add('active');
+            else if (pageName === 'processing') navTabs[1].classList.add('active');
+            else if (pageName === 'chat') navTabs[2].classList.add('active');
+            
+            currentPage = pageName;
+            updateActionBar();
+        }
+        
+        function updateActionBar() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            
+            // Update button visibility and text
+            if (currentPage === 'configuration') {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'inline-flex';
+                nextBtn.innerHTML = 'Next: Upload Document <span>→</span>';
+                saveBtn.style.display = 'inline-flex';
+                resetBtn.style.display = 'inline-flex';
+            } else if (currentPage === 'processing') {
+                prevBtn.style.display = 'inline-flex';
+                nextBtn.style.display = 'inline-flex';
+                nextBtn.innerHTML = processedDocument ? 'Next: Chat & Review <span>→</span>' : 'Process Document First';
+                nextBtn.disabled = !processedDocument;
+                saveBtn.style.display = 'none';
+                resetBtn.style.display = 'none';
+            } else if (currentPage === 'chat') {
+                prevBtn.style.display = 'inline-flex';
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                resetBtn.style.display = 'none';
+            }
+        }
+        
+        function markPageCompleted(pageName) {
+            const navTabs = document.querySelectorAll('.nav-tab');
+            if (pageName === 'configuration') {
+                navTabs[0].classList.add('completed');
+            } else if (pageName === 'processing') {
+                navTabs[1].classList.add('completed');
+            }
+        }
+        
+        // Configuration management
+        function showConfigSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.config-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // Remove active from all tabs
+            document.querySelectorAll('.config-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-config').classList.add('active');
+            // Add active to clicked tab
+            event.target.classList.add('active');
+            
+            // Handle database-specific fields
+            if (sectionName === 'database') {
+                updateDatabaseFields();
+            }
+        }
+        
+        function updateDatabaseFields() {
+            const storageType = document.getElementById('STORAGE_TYPE').value;
+            
+            // Hide all database-specific fields
+            const dbGroups = [
+                'postgres-group', 'postgres-port-group', 'postgres-user-group', 
+                'postgres-password-group', 'postgres-database-group',
+                'neo4j-uri-group', 'neo4j-username-group', 'neo4j-password-group',
+                'mongo-uri-group', 'mongo-database-group',
+                'milvus-uri-group', 'milvus-db-group',
+                'qdrant-url-group', 'qdrant-api-key-group',
+                'redis-uri-group'
+            ];
+            
+            dbGroups.forEach(groupId => {
+                const group = document.getElementById(groupId);
+                if (group) group.style.display = 'none';
+            });
+            
+            // Show relevant fields based on storage type
+            if (storageType === 'postgresql') {
+                ['postgres-group', 'postgres-port-group', 'postgres-user-group', 
+                 'postgres-password-group', 'postgres-database-group'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            } else if (storageType === 'neo4j') {
+                ['neo4j-uri-group', 'neo4j-username-group', 'neo4j-password-group'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            } else if (storageType === 'mongodb') {
+                ['mongo-uri-group', 'mongo-database-group'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            } else if (storageType === 'milvus') {
+                ['milvus-uri-group', 'milvus-db-group'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            } else if (storageType === 'qdrant') {
+                ['qdrant-url-group', 'qdrant-api-key-group'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            }
+        }
+        
+        async function saveConfig() {
+            const config = {};
+            
+            // Get all form inputs
+            const inputs = document.querySelectorAll('.config-content input, .config-content select, .config-content textarea');
+            inputs.forEach(input => {
+                if (input.id && input.value.trim()) {
+                    config[input.id] = input.value.trim();
+                }
+            });
+            
+            try {
+                const response = await fetch('/api/config/save/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showStatusMessage('Configuration saved successfully! You can now proceed to document processing.', 'success');
+                    markPageCompleted('configuration');
+                    
+                    // Enable next button
+                    const nextBtn = document.getElementById('next-btn');
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = 'Next: Upload Document <span>→</span>';
+                } else {
+                    showStatusMessage('Error saving configuration: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatusMessage('Network error saving configuration: ' + error.message, 'error');
+            }
+        }
+        
+        function resetConfig() {
+            if (confirm('Reset all configuration to default values?')) {
+                // Reset all form fields to their default values
+                const inputs = document.querySelectorAll('.config-content input, .config-content select, .config-content textarea');
+                inputs.forEach(input => {
+                    if (input.type === 'number') {
+                        input.value = input.getAttribute('value') || '';
+                    } else if (input.type === 'text' || input.type === 'password' || input.tagName === 'TEXTAREA') {
+                        input.value = input.getAttribute('value') || '';
+                    } else if (input.tagName === 'SELECT') {
+                        const defaultOption = input.querySelector('option[selected]');
+                        if (defaultOption) {
+                            input.value = defaultOption.value;
+                        }
+                    }
+                });
+                
+                showStatusMessage('Configuration reset to defaults', 'warning');
+            }
+        }
+        
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config/load/');
+                const result = await response.json();
+                
+                if (response.ok && result.success && result.config) {
+                    Object.keys(result.config).forEach(key => {
+                        const input = document.getElementById(key);
+                        if (input) {
+                            input.value = result.config[key];
+                        }
+                    });
+                    
+                    // Update database fields visibility
+                    updateDatabaseFields();
+                }
+            } catch (error) {
+                console.log('No saved configuration found or error loading:', error.message);
+                // This is OK - user might not have saved any config yet
+            }
+        }
+        
+        // Panel management
+        function showPanel(panelName) {
+            // This would switch between different panel views
+            // For now, it's mostly decorative
+        }
+        
+        // Status message display
+        function showStatusMessage(message, type) {
+            const statusDiv = document.getElementById('status');
+            const className = type === 'success' ? 'status-success' : 
+                            type === 'error' ? 'status-error' : 
+                            type === 'warning' ? 'status-warning' : 'status-processing';
+            
+            statusDiv.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            // Clear after 5 seconds
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Processing functionality
+        async function pollTaskStatus(taskId) {
+            try {
+                const response = await fetch(`/api/task_status/${taskId}/`);
+                const data = await response.json();
+                
+                // Update progress bar
+                const progressBar = document.getElementById('progress-bar');
+                progressBar.style.width = data.progress + '%';
+                
+                // Update logs
+                const logsDiv = document.getElementById('logs');
+                if (data.logs && data.logs.length > 0) {
+                    logsDiv.textContent = data.logs.join('\n');
+                    logsDiv.scrollTop = logsDiv.scrollHeight;
+                }
+                
+                // Update status
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    showStatusMessage('Document processed successfully! You can now proceed to chat and review.', 'success');
+                    
+                    // Mark document as processed
+                    processedDocument = data.result;
+                    markPageCompleted('processing');
+                    
+                    // Enable chat functionality
+                    document.getElementById('chat-message-input').disabled = false;
+                    document.getElementById('chat-send-btn').disabled = false;
+                    
+                    // Update PDF viewer placeholder
+                    const pdfContent = document.querySelector('.pdf-content');
+                    pdfContent.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 64px; margin-bottom: 16px; color: #10b981;">✅</div>
+                            <div style="font-size: 18px; font-weight: 600; color: #10b981; margin-bottom: 8px;">Document Processed Successfully!</div>
+                            <div style="font-size: 14px; color: #6b7280; margin-bottom: 16px;">File: ${data.file_path || 'Unknown'}</div>
+                            <div style="font-size: 14px; color: #6b7280;">Ready for chat and analysis</div>
+                        </div>
+                    `;
+                    
+                    // Reset button
+                    const processBtn = document.getElementById('processBtn');
+                    processBtn.disabled = false;
+                    processBtn.innerHTML = '<span>🚀</span> Process Document';
+                    
+                    // Update action bar
+                    updateActionBar();
+                    
+                } else if (data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    showStatusMessage('Processing failed: ' + (data.error || 'Unknown error'), 'error');
+                    
+                    // Reset button
+                    const processBtn = document.getElementById('processBtn');
+                    processBtn.disabled = false;
+                    processBtn.innerHTML = '<span>🚀</span> Process Document';
+                    
+                } else if (data.status === 'processing') {
+                    showStatusMessage('Processing document: ' + data.file_path, 'processing');
+                }
+                
+            } catch (error) {
+                console.error('Polling error:', error);
+                clearInterval(pollInterval);
+                showStatusMessage('Polling error: ' + error.message, 'error');
+            }
+        }
+        
+        // File handling
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        }
+        
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                showStatusMessage('Uploading file...', 'processing');
+                
+                const response = await fetch('/upload/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Show file info
+                    document.getElementById('selected-file-name').textContent = result.file_name;
+                    document.getElementById('selected-file-size').textContent = 
+                        `Size: ${(result.file_size / 1024 / 1024).toFixed(2)} MB`;
+                    document.getElementById('file-info').style.display = 'block';
+                    
+                    // Set hidden field and enable process button
+                    document.getElementById('selectedFileName').value = result.file_name;
+                    document.getElementById('processBtn').disabled = false;
+                    
+                    showStatusMessage('File uploaded successfully: ' + result.file_name, 'success');
+                } else {
+                    showStatusMessage('Upload failed: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatusMessage('Upload error: ' + error.message, 'error');
+            }
+        }
+        
+        function refreshFileList() {
+            // In a real implementation, this would reload the page or fetch new file list
+            window.location.reload();
+        }
+        
+        // File upload and processing
+        document.getElementById('processForm').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const processBtn = document.getElementById('processBtn');
+            const progressContainer = document.getElementById('progress-container');
+            const logsContainer = document.getElementById('logs-container');
+            const fileName = document.getElementById('selectedFileName').value;
+            
+            if (!fileName) {
+                showStatusMessage('Please select a file first', 'error');
+                return;
+            }
+            
+            // Show processing state
+            processBtn.disabled = true;
+            processBtn.innerHTML = '<span>⏳</span> Starting...';
+            progressContainer.style.display = 'block';
+            logsContainer.style.display = 'block';
+            
+            try {
+                const formData = new FormData(this);
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                const response = await fetch('/process_file/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.task_id) {
+                    currentTaskId = result.task_id;
+                    processBtn.innerHTML = '<span>⚡</span> Processing...';
+                    showStatusMessage('Document processing started. Task ID: ' + result.task_id, 'processing');
+                    
+                    // Start polling for status
+                    pollInterval = setInterval(() => pollTaskStatus(currentTaskId), 2000);
+                    
+                } else {
+                    showStatusMessage('Error: ' + (result.error || 'Failed to start processing'), 'error');
+                    processBtn.disabled = false;
+                    processBtn.innerHTML = '<span>🚀</span> Process Document';
+                    progressContainer.style.display = 'none';
+                    logsContainer.style.display = 'none';
+                }
+            } catch (error) {
+                showStatusMessage('Network Error: ' + error.message, 'error');
+                processBtn.disabled = false;
+                processBtn.innerHTML = '<span>🚀</span> Process Document';
+                progressContainer.style.display = 'none';
+                logsContainer.style.display = 'none';
+            }
+        };
+        
+        // Clear cache functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const clearCacheBtn = document.getElementById('clearCacheBtn');
+            if (clearCacheBtn) {
+                clearCacheBtn.onclick = async function() {
+                    const clearBtn = this;
+                    const originalText = clearBtn.textContent;
+                    
+                    if (!confirm('This will clear all processing cache and force fresh processing (10+ minutes). Continue?')) {
+                        return;
+                    }
+                    
+                    clearBtn.disabled = true;
+                    clearBtn.textContent = 'Clearing...';
+                    
+                    try {
+                        const response = await fetch('/api/clear_cache/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            },
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            showStatusMessage(result.message + '<br>Next processing: ' + result.next_processing, 'success');
+                        } else {
+                            showStatusMessage('Error clearing cache: ' + (result.error || 'Unknown error'), 'error');
+                        }
+                    } catch (error) {
+                        showStatusMessage('Network Error: ' + error.message, 'error');
+                    } finally {
+                        clearBtn.disabled = false;
+                        clearBtn.textContent = originalText;
+                    }
+                };
+            }
+        });
+        
+        // Chat functionality
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-message-input');
+            const message = input.value.trim();
+            
+            if (!message || !processedDocument) return;
+            
+            // Add user message to chat
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            const typingId = addChatMessage('Analyzing your question...', 'assistant', true);
+            
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+                
+                const result = await response.json();
+                
+                // Remove typing indicator
+                document.getElementById(typingId).remove();
+                
+                if (response.ok && result.response) {
+                    addChatMessage(result.response, 'assistant');
+                } else {
+                    addChatMessage('Sorry, I encountered an error processing your question: ' + (result.error || 'Unknown error'), 'assistant');
+                }
+            } catch (error) {
+                document.getElementById(typingId).remove();
+                addChatMessage('Network error: ' + error.message, 'assistant');
+            }
+        }
+        
+        function addChatMessage(message, sender, isTyping = false) {
+            const chatContent = document.getElementById('chat-content');
+            const messageId = 'msg-' + Date.now() + Math.random();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.id = messageId;
+            messageDiv.style.marginBottom = '20px';
+            
+            const isUser = sender === 'user';
+            const bgColor = isUser ? '#3b82f6' : '#f8fafc';
+            const textColor = isUser ? 'white' : '#374151';
+            const avatar = isUser ? '👤' : '🤖';
+            const align = isUser ? 'flex-end' : 'flex-start';
+            
+            messageDiv.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 12px; justify-content: ${align};">
+                    ${!isUser ? `<div style="width: 32px; height: 32px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">${avatar}</div>` : ''}
+                    <div style="max-width: 70%; background: ${bgColor}; color: ${textColor}; padding: 12px 16px; border-radius: 12px; ${isUser ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px;'}">
+                        <div style="line-height: 1.5;">${message}</div>
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 8px;">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                    ${isUser ? `<div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">${avatar}</div>` : ''}
+                </div>
+            `;
+            
+            if (isTyping) {
+                const dots = messageDiv.querySelector('div div div');
+                dots.innerHTML = '<div style="display: flex; gap: 4px;"><span style="animation: typing 1.4s infinite;">●</span><span style="animation: typing 1.4s infinite 0.2s;">●</span><span style="animation: typing 1.4s infinite 0.4s;">●</span></div><style>@keyframes typing { 0%, 80% { opacity: 0.3; } 40% { opacity: 1; } }</style>';
+            }
+            
+            chatContent.appendChild(messageDiv);
+            chatContent.scrollTop = chatContent.scrollHeight;
+            
+            return messageId;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved configuration
+            loadConfig();
+            
+            // Set up storage type change handler
+            const storageSelect = document.getElementById('STORAGE_TYPE');
+            if (storageSelect) {
+                storageSelect.addEventListener('change', updateDatabaseFields);
+                updateDatabaseFields(); // Initial setup
+            }
+            
+            // Set up initial logs message
+            const logsDiv = document.getElementById('logs');
+            if (logsDiv) {
+                logsDiv.textContent = 'Logs will appear here when processing starts...';
+            }
+            
+            // Set up chat input enter key
+            const chatInput = document.getElementById('chat-message-input');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChatMessage();
+                    }
+                });
+            }
+            
+            // Set up chat send button
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            if (chatSendBtn) {
+                chatSendBtn.onclick = sendChatMessage;
+            }
+            
+            // Initialize page state
+            updateActionBar();
+        });
+        
+        // Clean up polling on page unload
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        });
+    </script>
+</body>
+</html>
