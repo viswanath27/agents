@@ -4,9 +4,19 @@ from lightrag.llm.openai import openai_complete_if_cache, openai_embed
 from lightrag.utils import EmbeddingFunc
 
 async def main():
-    # Set up API configuration
-    api_key = "your-api-key"
-    base_url = "your-base-url"  # Optional
+    # Set up API configuration from environment variables
+    from dotenv import load_dotenv
+    import os
+    
+    # Load environment variables from .env file
+    load_dotenv()
+    
+    # Get API key from environment variable
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+        
+    base_url = "https://api.openai.com/v1"  # OpenAI API endpoint
 
     # Create RAGAnything configuration
     config = RAGAnythingConfig(
@@ -102,7 +112,7 @@ async def main():
 
     # Process a document
     await rag.process_document_complete(
-        file_path="path/to/your/document.pdf",
+        file_path="2510.18845v1.pdf",
         output_dir="./output",
         parse_method="auto"
     )
