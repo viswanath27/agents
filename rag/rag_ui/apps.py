@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class RagAppConfig(AppConfig):
+class RagUiConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "rag_app"
+    name = "rag_ui"

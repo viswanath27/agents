@@ -20,5 +20,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include("rag_backend.urls")),
+    path("api/", include("rag_backend.urls")),  # Backend API routes
+    path("", include("rag_ui.urls")),  # Frontend routes
 ]

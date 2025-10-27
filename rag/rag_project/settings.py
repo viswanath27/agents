@@ -37,8 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rag_app",
     "rag_backend",
+    "rag_ui",
 ]
 
 MIDDLEWARE = [
